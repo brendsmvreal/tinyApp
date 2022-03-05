@@ -10,6 +10,12 @@ const urlDatabase = {
 };
 
 const bodyParser = require("body-parser");
+
+function generateRandomString() {
+  let result = Array.from(Array(6), () => Math.floor(Math.random() * 36).toString(36)).join("");
+  return result;
+}
+
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.get("/urls/new", (req, res) => {
