@@ -47,8 +47,15 @@ app.get("/urls.json", (req, res) => {
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
+//  whatever the newly formed string is, make it equal to req.body.longURL (which represents the url that you used in browser)
+// create a variable that stores the function, that variable is equal to req.body.longURL
+//res.redirect would be req.body.longURL
+//  the generated string is a key => urlDatabase.b2xVn2(function)
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  const randomURL = generateRandomString();
+  urlDatabase[randomURL] = req.body.longURL;
+  res.redirect(`/urls/${randomURL}`);
 });
+
+
