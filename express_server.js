@@ -51,10 +51,17 @@ app.get("/u/:shortURL", (req, res) => {
   }
 });
 
+app.post("/urls/:id", (req, res) => {
+  const newLongURL = req.body.newLongURL;
+  const id = req.params.id;
+  urlDatabase[id] = newLongURL; 
+  res.redirect("/urls")
+})
+
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
-  res.redirect("/urls");
+  res.redirect("/urls/");
 });
 
 app.get("/urls.json", (req, res) => {
