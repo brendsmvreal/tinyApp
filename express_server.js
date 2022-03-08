@@ -13,11 +13,23 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+};
 
 function generateRandomString() {
   let result = Array.from(Array(6), () => Math.floor(Math.random() * 36).toString(36)).join("");
   return result;
-}
+};
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -87,6 +99,15 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/login", (req, res) => {  
   const username = req.body["username"];
   res.cookie("username", username);
+  res.redirect("/urls");
+});
+
+app.post("/register", (req, res) => {
+  const id = generateRandomString();
+  const email = req.body["email"];
+  const password = req.body["password"];
+  res.cookie("user_id", id)
+  console.log(req.body);
   res.redirect("/urls");
 });
 
