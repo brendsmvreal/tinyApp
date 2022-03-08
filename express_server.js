@@ -13,6 +13,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+
 function generateRandomString() {
   let result = Array.from(Array(6), () => Math.floor(Math.random() * 36).toString(36)).join("");
   return result;
@@ -38,12 +39,6 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
-app.post("/urls", (req, res) => {
-  const randomURL = generateRandomString();
-  urlDatabase[randomURL] = req.body.longURL;
-  res.redirect(`/urls/${randomURL}`);
-});
-
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL, 
@@ -60,6 +55,20 @@ app.get("/u/:shortURL", (req, res) => {
   } else { 
  res.send("Invalid input!")
   }
+});
+
+app.get("/urls.json", (req, res) => {
+  res.json(urlDatabase);
+});
+
+app.get("/register", (req, res) => {
+  res.render('urls_register');
+});
+
+app.post("/urls", (req, res) => {
+  const randomURL = generateRandomString();
+  urlDatabase[randomURL] = req.body.longURL;
+  res.redirect(`/urls/${randomURL}`);
 });
 
 app.post("/urls/:id", (req, res) => {
@@ -85,14 +94,6 @@ app.post("/logout", (req, res) => {
   const username = req.body["username"];
   res.clearCookie("username", username);
   res.redirect("/urls");
-});
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.listen(PORT, () => {
