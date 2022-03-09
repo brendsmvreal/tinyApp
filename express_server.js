@@ -38,7 +38,7 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   const templateVars = { 
     urls: urlDatabase,
-    username: req.cookies['username']
+    user: req.cookies['user_id']
    };
   res.render("urls_index", templateVars);
 });
@@ -46,7 +46,7 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const templateVars = { 
     urls: urlDatabase,
-    username: req.cookies['username']
+    user: req.cookies['user_id']
    };
   res.render("urls_new", templateVars);
 });
@@ -55,7 +55,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: req.params.longURL, 
-    username: req.cookies['username'] };
+    user: req.cookies['user_id'] };
   res.render("urls_show", templateVars);
 });
 
@@ -74,7 +74,11 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  res.render('urls_register');
+  const templateVars = { 
+    user: null,
+    // username: null,
+  };
+  res.render('urls_register', templateVars);
 });
 
 app.post("/urls", (req, res) => {
@@ -97,8 +101,12 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/login", (req, res) => {  
-  const username = req.body["username"];
-  res.cookie("username", username);
+  const user = req.body["user"];
+  for (const element in users) {
+    if (users[element].email === user) {
+      res.cookie("user_id", users[element]) 
+    }
+  }
   res.redirect("/urls");
 });
 
@@ -106,14 +114,21 @@ app.post("/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body["email"];
   const password = req.body["password"];
-  res.cookie("user_id", id)
-  console.log(req.body);
+  // 1) create object that will append to users
+  users[id] = {
+    "id": id, 
+    "email": email, 
+    "password": password
+  }
+  // 2) add this object to users
+  // 3) store this object into res.cookie("username": newObject)
+  res.cookie("user_id", users[id])
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  const username = req.body["username"];
-  res.clearCookie("username", username);
+  const user = req.body["user"];
+  res.clearCookie("user_id", user);
   res.redirect("/urls");
 });
 
