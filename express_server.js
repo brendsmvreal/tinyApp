@@ -31,6 +31,14 @@ function generateRandomString() {
   return result;
 };
 
+function emailExists(email, users) {
+  for (const user in users) {
+    if (email === users[id].email) {
+      return true;
+    }
+  }
+};
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -74,11 +82,11 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const templateVars = { 
+  const x = { 
     user: null,
-    // username: null,
+    users: users
   };
-  res.render('urls_register', templateVars);
+  res.render('urls_register', x);
 });
 
 app.post("/urls", (req, res) => {
@@ -101,7 +109,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/login", (req, res) => {  
-  const user = req.body["user"];
+  const userID = req.body["user"];
   for (const element in users) {
     if (users[element].email === user) {
       res.cookie("user_id", users[element]) 
@@ -112,17 +120,22 @@ app.post("/login", (req, res) => {
 
 app.post("/register", (req, res) => {
   const id = generateRandomString();
-  const email = req.body["email"];
-  const password = req.body["password"];
-  // 1) create object that will append to users
+  const email = req.body.email.trim();
+  const password = req.body.password.trim();
+  if (!email || !password) {
+    return res.status(400).send("Must fill out valid email and password!");
+  }
+  if (!emailExists(email, users[id])) {
+    console.log(users);
+    return res.status(400).send("This email address is in use!");
+  } else {
+    res.cookie("user_id", users[id])  
+  }
   users[id] = {
     "id": id, 
     "email": email, 
     "password": password
-  }
-  // 2) add this object to users
-  // 3) store this object into res.cookie("username": newObject)
-  res.cookie("user_id", users[id])
+  };
   res.redirect("/urls");
 });
 
