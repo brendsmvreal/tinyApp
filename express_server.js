@@ -3,6 +3,7 @@ const cookieParser = require('cookie-parser')
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
+const req = require("express/lib/request");
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
@@ -31,11 +32,21 @@ function generateRandomString() {
   return result;
 };
 
-function emailExists(email, users) {
-  for (const user in users) {
-    if (email === users[id].email) {
-      return true;
+const findUserByEmail = function(email, users) {  // helper function used in authenticateUser function
+  for (const userID in users) {
+    if (users[userID].email === email) {
+      return users[userID];
     }
+  }
+  return false;
+};
+
+const authenticateUser = function(email, password, users) {  // helper function used in POST /login
+  const userFound = findUserByEmail(email, users);
+  if (userFound && userFound.password === password) {
+    return userFound;
+  } else {
+    return false;
   }
 };
 
@@ -44,26 +55,33 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  const user_id = req.cookies["user_id"];
+  const user = users[user_id];
   const templateVars = { 
     urls: urlDatabase,
-    user: req.cookies['user_id']
+    userKey: user
    };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
+  const user_id = req.cookies["user_id"];
+  const user = users[user_id];
   const templateVars = { 
     urls: urlDatabase,
-    user: req.cookies['user_id']
+    userKey: user
    };
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  const user_id = req.cookies["user_id"];
+  const user = users[user_id];
   const templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: req.params.longURL, 
-    user: req.cookies['user_id'] };
+    userKey: user 
+  };
   res.render("urls_show", templateVars);
 });
 
@@ -82,12 +100,22 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const x = { 
-    user: null,
-    users: users
+  const user_id = req.cookies["user_id"];
+  const user = users[user_id];
+  const templateVars = { 
+    userKey: user,
   };
-  res.render('urls_register', x);
+  res.render('urls_register', templateVars);
 });
+
+app.get("/login", (req, res) => {
+  const user_id = req.cookies["user_id"];
+  const user = users[user_id];
+  const templateVars = { 
+    userKey: user
+  };
+  res.render("urls_login", templateVars)
+})
 
 app.post("/urls", (req, res) => {
   const randomURL = generateRandomString();
@@ -108,40 +136,45 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls/");
 });
 
-app.post("/login", (req, res) => {  
-  const userID = req.body["user"];
-  for (const element in users) {
-    if (users[element].email === user) {
-      res.cookie("user_id", users[element]) 
-    }
+app.post("/login", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  let user = authenticateUser(email, password, users);
+  if (user) {
+    res.cookie("user_id", user.id);
+    res.redirect("/urls");
+  } else {
+    res.status(403).send("Email or password is incorrect");
   }
-  res.redirect("/urls");
 });
 
 app.post("/register", (req, res) => {
-  const id = generateRandomString();
+  const newUserID = generateRandomString();
   const email = req.body.email.trim();
   const password = req.body.password.trim();
-  if (!email || !password) {
-    return res.status(400).send("Must fill out valid email and password!");
-  }
-  if (!emailExists(email, users[id])) {
-    console.log(users);
-    return res.status(400).send("This email address is in use!");
-  } else {
-    res.cookie("user_id", users[id])  
-  }
-  users[id] = {
-    "id": id, 
+  const newUser = {
+    [newUserID]: {
+    "id": newUserID, 
     "email": email, 
     "password": password
+    }
   };
+  for (const key in users) {
+    if (users[key].email === newUser[newUserID].email) {
+      return res.status(400).send("This email address is in use!");
+    }
+    else if (!email || !password) {
+      return res.status(400).send("Must fill out valid email and password!");
+    }
+  }
+  Object.assign(users, newUser);
+  res.cookie("user_id", newUserID);
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  const user = req.body["user"];
-  res.clearCookie("user_id", user);
+  // const user = req.body["user"];
+  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
