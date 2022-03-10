@@ -32,22 +32,71 @@ function generateRandomString() {
   return result;
 };
 
+// const findUserByPassword = function(password, users) {  // helper function used in authenticateUser function
+//   for (const userID in users) {
+//     if (users[userID].password === password) {
+//       return true;
+//     }
+//   }
+//   return false;
+// };
+
+// const findUserByEmail = function(email, users) {  // helper function used in authenticateUser function
+//   for (const userID in users) {
+//     if (users[userID].email === email) {
+//       return users[userID];
+//       // return true;
+//     }
+//   }
+//   return false;
+// };
+
+// const authenticateUser = function(email, password, users) {  // helper function used in POST /login
+//   const userFound = findUserByEmail(email, users);
+//   console.log("userFound", userFound);
+//   const passwordFound = findUserByPassword(password, users);
+//   console.log("passwordFound", passwordFound);
+//   if (!userFound && !passwordFound) {
+//     return false;
+//   }
+//   if (userFound && passwordFound) {
+//     return userFound;
+//   }
+//   // return true;
+// };
+
 const findUserByEmail = function(email, users) {  // helper function used in authenticateUser function
   for (const userID in users) {
     if (users[userID].email === email) {
-      return users[userID];
+      return true;
     }
   }
   return false;
 };
 
+const findUserByPassword = function(password, users) {  // helper function used in authenticateUser function
+  for (const userID in users) {
+    if (users[userID].password === password) {
+      return true;
+    }
+  }
+  return false;
+};
 const authenticateUser = function(email, password, users) {  // helper function used in POST /login
+  for (const user in users) {
+    if(users[user].email === email && users[user].password === password) {
+        return users[user]; // this is for the login 
+    }
+  }
   const userFound = findUserByEmail(email, users);
-  if (userFound && userFound.password === password) {
-    return userFound;
-  } else {
+  const passwordFound = findUserByPassword(password, users);
+  if (!userFound && !passwordFound) {
     return false;
   }
+  if (userFound || passwordFound) {
+    return true
+  }
+  return true
 };
 
 app.get("/", (req, res) => {
@@ -137,37 +186,31 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
+  const {email, password} = req.body 
   let user = authenticateUser(email, password, users);
-  if (user) {
+  if (user.email) {
     res.cookie("user_id", user.id);
     res.redirect("/urls");
   } else {
-    res.status(403).send("Email or password is incorrect");
+    res.status(403).send("Invalid credentials!");
   }
 });
 
 app.post("/register", (req, res) => {
-  const newUserID = generateRandomString();
-  const email = req.body.email.trim();
-  const password = req.body.password.trim();
-  const newUser = {
-    [newUserID]: {
-    "id": newUserID, 
-    "email": email, 
-    "password": password
-    }
-  };
-  for (const key in users) {
-    if (users[key].email === newUser[newUserID].email) {
-      return res.status(400).send("This email address is in use!");
-    }
-    else if (!email || !password) {
-      return res.status(400).send("Must fill out valid email and password!");
-    }
+  const {email, password} = req.body;
+  if (email === "" || password === "") {
+    return res.status(400).send("Invalid credentials!")
   }
-  Object.assign(users, newUser);
+  const authUser = authenticateUser(email, password, users);
+  if (authUser) {
+    return res.status(400).send("Invalid credentials!")
+  }
+  const newUserID = generateRandomString();
+  users[newUserID] = {
+    id: newUserID,
+    email,
+    password
+  }
   res.cookie("user_id", newUserID);
   res.redirect("/urls");
 });
