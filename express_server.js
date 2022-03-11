@@ -3,14 +3,13 @@ const cookieParser = require('cookie-parser')
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
-const req = require("express/lib/request");
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.set("view engine", "ejs");
 
-const urlDatabase = { //shortURL = key of obj 
-  b6UTxQ: { // shortURL 
+const urlDatabase = { 
+  b6UTxQ: { 
         longURL: "https://www.tsn.ca",
         userID: "aJ48lW"
     },
@@ -19,11 +18,6 @@ const urlDatabase = { //shortURL = key of obj
         userID: "aJ48lW"
     }
 };
-
-// const urlDatabase = {
-//   "b2xVn2": "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com"
-// };
 
 const users = { 
   "userRandomID": {
@@ -38,7 +32,7 @@ const users = {
   }
 };
 
-function generateRandomString() {
+function generateRandomString() { 
   let result = Array.from(Array(6), () => Math.floor(Math.random() * 36).toString(36)).join("");
   return result;
 };
@@ -78,7 +72,7 @@ const authenticateUser = function(email, password, users) {  // helper function 
   return true
 };
 
-const urlsForUser = function(id, uDb) { // uDb = new data Obj
+const urlsForUser = function(id, uDb) { 
   newObj = {};
   for (const k in uDb) {
     if (id === uDb[k].userID) {
@@ -99,6 +93,8 @@ const findUserByShortURL = function(id, uDb) {
   }
   return false;
 };
+
+// GET requests 
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -138,7 +134,7 @@ app.get("/urls/new", (req, res) => {
    }
 });
 
-app.get("/urls/:shortURL", (req, res) => { // 
+app.get("/urls/:shortURL", (req, res) => { 
   const user_id = req.cookies["user_id"];
   const user = users[user_id];
   const templateVars = { 
@@ -183,7 +179,9 @@ app.get("/login", (req, res) => {
     userKey: user
   };
   res.render("urls_login", templateVars)
-})
+});
+
+// POST requests
 
 app.post("/urls", (req, res) => {
   const user_id = req.cookies["user_id"];
@@ -200,18 +198,16 @@ app.post("/urls", (req, res) => {
   }
 });
 
-app.post("/urls/:id", (req, res) => { //
+app.post("/urls/:id", (req, res) => {
   const newLongURL = req.body.newLongURL;
   const id = req.params.id;
   urlDatabase[id].longURL = newLongURL; 
   if (findUserByShortURL(user_id, urlDatabase)) {
     res.redirect("/urls/");
-  } else {
-    res.send("Cannot delete without login!")
   } 
 });
 
-app.post("/urls/:shortURL/delete", (req, res) => { //
+app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   const user_id = req.cookies["user_id"];
   if (findUserByShortURL(user_id, urlDatabase)) {
@@ -253,7 +249,6 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  // const user = req.body["user"];
   res.clearCookie("user_id");
   res.redirect("/urls");
 });
