@@ -9,10 +9,21 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.set("view engine", "ejs");
 
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+const urlDatabase = { //shortURL = key of obj // 
+  b6UTxQ: { // 
+        longURL: "https://www.tsn.ca",
+        userID: "aJ48lW"
+    },
+    i3BoGr: {
+        longURL: "https://www.google.ca",
+        userID: "aJ48lW"
+    }
 };
+
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
+// };
 
 const users = { 
   "userRandomID": {
@@ -32,39 +43,6 @@ function generateRandomString() {
   return result;
 };
 
-// const findUserByPassword = function(password, users) {  // helper function used in authenticateUser function
-//   for (const userID in users) {
-//     if (users[userID].password === password) {
-//       return true;
-//     }
-//   }
-//   return false;
-// };
-
-// const findUserByEmail = function(email, users) {  // helper function used in authenticateUser function
-//   for (const userID in users) {
-//     if (users[userID].email === email) {
-//       return users[userID];
-//       // return true;
-//     }
-//   }
-//   return false;
-// };
-
-// const authenticateUser = function(email, password, users) {  // helper function used in POST /login
-//   const userFound = findUserByEmail(email, users);
-//   console.log("userFound", userFound);
-//   const passwordFound = findUserByPassword(password, users);
-//   console.log("passwordFound", passwordFound);
-//   if (!userFound && !passwordFound) {
-//     return false;
-//   }
-//   if (userFound && passwordFound) {
-//     return userFound;
-//   }
-//   // return true;
-// };
-
 const findUserByEmail = function(email, users) {  // helper function used in authenticateUser function
   for (const userID in users) {
     if (users[userID].email === email) {
@@ -82,6 +60,7 @@ const findUserByPassword = function(password, users) {  // helper function used 
   }
   return false;
 };
+
 const authenticateUser = function(email, password, users) {  // helper function used in POST /login
   for (const user in users) {
     if(users[user].email === email && users[user].password === password) {
@@ -119,8 +98,12 @@ app.get("/urls/new", (req, res) => {
   const templateVars = { 
     urls: urlDatabase,
     userKey: user
-   };
+   }
+   if (user_id) {
   res.render("urls_new", templateVars);
+   } else {
+     res.redirect("/login");
+   }
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -128,7 +111,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const user = users[user_id];
   const templateVars = { 
     shortURL: req.params.shortURL, 
-    longURL: req.params.longURL, 
+    longURL: urlDatabase[req.params.shortURL], 
     userKey: user 
   };
   res.render("urls_show", templateVars);
@@ -138,9 +121,9 @@ app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL]
   if (urlDatabase[shortURL]) {
-    res.redirect(longURL);
+    res.redirect(longURL.longURL);
   } else { 
- res.send("Invalid input!")
+  res.send("Invalid input!")
   }
 });
 
@@ -167,17 +150,26 @@ app.get("/login", (req, res) => {
 })
 
 app.post("/urls", (req, res) => {
+  const user_id = req.cookies["user_id"];
+  const user = users[user_id];
   const randomURL = generateRandomString();
-  urlDatabase[randomURL] = req.body.longURL;
-  res.redirect(`/urls/${randomURL}`);
+  urlDatabase[randomURL] = {
+    longURL: req.body.longURL,
+    userID: user_id
+  }
+  if (user_id) {
+    res.redirect(`/urls/${randomURL}`);
+  } else {
+    res.send("Not logged in!")
+  }
 });
 
 app.post("/urls/:id", (req, res) => {
   const newLongURL = req.body.newLongURL;
   const id = req.params.id;
-  urlDatabase[id] = newLongURL; 
+  urlDatabase[id].longURL = newLongURL; 
   res.redirect("/urls")
-})
+});
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
