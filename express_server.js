@@ -138,7 +138,11 @@ app.post("/urls", (req, res) => {
 
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
+  const user_id = req.session.user_id;
   if (findUserByShortURL(id, user_id, urlDatabase)) {
+    const newLongURL = req.body.newLongURL;
+    const id = req.params.id;
+    urlDatabase[id].longURL = newLongURL;
     res.redirect("/urls/");
   }
 });
