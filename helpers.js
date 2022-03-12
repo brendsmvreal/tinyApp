@@ -25,7 +25,7 @@ const findUserByPassword = function(password, users) {  // helper function used 
 const authenticateUser = function(email, password, users) {  // helper function used in POST /login
   for (const user in users) {
     if (users[user].email === email && bcrypt.compareSync(password, users[user].password)) {
-      return users[user]; 
+      return users[user];
     }
   }
   const userFound = findUserByEmail(email, users);
@@ -39,7 +39,7 @@ const authenticateUser = function(email, password, users) {  // helper function 
   return true;
 };
 
-const urlsForUser = function(id, uDb) { // helper function that gives access to the user of their created URL's 
+const urlsForUser = function(id, uDb) { // helper function that gives access to the user of their created URL's
   newObj = {};
   for (const k in uDb) {
     if (id === uDb[k].userID) {
