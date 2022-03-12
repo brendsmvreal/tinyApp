@@ -3,6 +3,7 @@ const cookieParser = require('cookie-parser')
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
+const bcrypt = require('bcryptjs');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
@@ -48,7 +49,7 @@ const findUserByEmail = function(email, users) {  // helper function used in aut
 
 const findUserByPassword = function(password, users) {  // helper function used in authenticateUser function
   for (const userID in users) {
-    if (users[userID].password === password) {
+    if (bcrypt.compareSync(password, users[userID].password)) {
       return true;
     }
   }
@@ -57,8 +58,8 @@ const findUserByPassword = function(password, users) {  // helper function used 
 
 const authenticateUser = function(email, password, users) {  // helper function used in POST /login
   for (const user in users) {
-    if(users[user].email === email && users[user].password === password) {
-        return users[user]; // this is for the login 
+    if (users[user].email === email && bcrypt.compareSync(password, users[user].password)) {
+      return users[user]; // this is for the login 
     }
   }
   const userFound = findUserByEmail(email, users);
@@ -185,7 +186,6 @@ app.get("/login", (req, res) => {
 
 app.post("/urls", (req, res) => {
   const user_id = req.cookies["user_id"];
-  // const user = users[user_id];
   const randomURL = generateRandomString();
   urlDatabase[randomURL] = {
     longURL: req.body.longURL,
@@ -238,12 +238,14 @@ app.post("/register", (req, res) => {
   if (authUser) {
     return res.status(400).send("Invalid credentials!")
   }
+  const hashedPassword = bcrypt.hashSync(password, 10);
   const newUserID = generateRandomString();
   users[newUserID] = {
     id: newUserID,
     email,
-    password
+    password: hashedPassword,
   }
+  console.log(users);
   res.cookie("user_id", newUserID);
   res.redirect("/urls");
 });
