@@ -68,16 +68,16 @@ const authenticateUser = function(email, password, users) {  // helper function 
     return false;
   }
   if (userFound || passwordFound) {
-    return true
+    return true;
   }
-  return true
+  return true;
 };
 
 const urlsForUser = function(id, uDb) { 
   newObj = {};
-  for (const k in uDb) {
-    if (id === uDb[k].userID) {
-      newObj[k] = {
+  for (const k in uDb) { 
+    if (id === uDb[k].userID) { 
+      newObj[k] = {             
         longURL: uDb[k].longURL,
         userID: uDb[k].userID
       };
@@ -86,13 +86,11 @@ const urlsForUser = function(id, uDb) {
   return newObj;
 };
 
-const findUserByShortURL = function(id, uDb) {
-  for (const k in uDb) {
-    if (id === uDb[k].userID) {
-      return true;
-    }
+const findUserByShortURL = function(shortURL, id, uDb) { 
+  if (uDb[shortURL].userID === id) {
+    return true;
   }
-  return false;
+  return false;       
 };
 
 // GET requests 
@@ -137,18 +135,19 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => { 
   const user_id = req.cookies["user_id"];
-  const user = users[user_id];
-  const templateVars = { 
-    shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL], 
-    userKey: user 
-  };
-  if (findUserByShortURL(user_id, urlDatabase)) {
+  const user = users[user_id]; 
+  const shortURL = req.params.shortURL; 
+  if (findUserByShortURL(shortURL, user_id, urlDatabase)) {
+    const templateVars = { 
+      shortURL, 
+      longURL: urlDatabase[req.params.shortURL], 
+      userKey: user 
+    };
     res.render("urls_show", templateVars)
   } else {
     res.send("Invalid credentials!")
   }
-});
+}); // user_id ==! urldatabase[user_id].userID
 
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
@@ -199,10 +198,10 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  const newLongURL = req.body.newLongURL;
+  // const newLongURL = req.body.newLongURL;
   const id = req.params.id;
-  urlDatabase[id].longURL = newLongURL; 
-  if (findUserByShortURL(user_id, urlDatabase)) {
+  // urlDatabase[id].longURL = newLongURL; 
+  if (findUserByShortURL(id, user_id, urlDatabase)) {
     res.redirect("/urls/");
   } 
 });
@@ -210,7 +209,7 @@ app.post("/urls/:id", (req, res) => {
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
   const user_id = req.cookies["user_id"];
-  if (findUserByShortURL(user_id, urlDatabase)) {
+  if (findUserByShortURL(shortURL, user_id, urlDatabase)) {
     delete urlDatabase[shortURL];
     res.redirect("/urls/");
   } else {
@@ -245,7 +244,7 @@ app.post("/register", (req, res) => {
     email,
     password: hashedPassword,
   }
-  console.log(users);
+  // console.log(users);
   res.cookie("user_id", newUserID);
   res.redirect("/urls");
 });
