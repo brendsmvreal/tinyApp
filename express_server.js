@@ -1,12 +1,15 @@
 const express = require("express");
-const cookieParser = require('cookie-parser')
+const cookieSession = require('cookie-session');
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const bcrypt = require('bcryptjs');
 
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['secret_key'], 
+}));
 app.set("view engine", "ejs");
 
 const urlDatabase = { 
@@ -100,7 +103,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const user_id = req.cookies["user_id"];
+  const user_id = req.session.user_id;
   const user = users[user_id];
   const urls = urlsForUser(user_id, urlDatabase);
   let templateVars = { 
@@ -120,7 +123,7 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const user_id = req.cookies["user_id"];
+  const user_id = req.session.user_id;
   const user = users[user_id];
   const templateVars = { 
     urls: urlDatabase,
@@ -134,7 +137,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => { 
-  const user_id = req.cookies["user_id"];
+  const user_id = req.session.user_id;
   const user = users[user_id]; 
   const shortURL = req.params.shortURL; 
   if (findUserByShortURL(shortURL, user_id, urlDatabase)) {
@@ -147,7 +150,7 @@ app.get("/urls/:shortURL", (req, res) => {
   } else {
     res.send("Invalid credentials!")
   }
-}); // user_id ==! urldatabase[user_id].userID
+});
 
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
@@ -164,7 +167,7 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const user_id = req.cookies["user_id"];
+  const user_id = req.session.user_id;
   const user = users[user_id];
   const templateVars = { 
     userKey: user,
@@ -173,7 +176,7 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  const user_id = req.cookies["user_id"];
+  const user_id = req.session.user_id;
   const user = users[user_id];
   const templateVars = { 
     userKey: user
@@ -184,7 +187,7 @@ app.get("/login", (req, res) => {
 // POST requests
 
 app.post("/urls", (req, res) => {
-  const user_id = req.cookies["user_id"];
+  const user_id = req.session.user_id;
   const randomURL = generateRandomString();
   urlDatabase[randomURL] = {
     longURL: req.body.longURL,
@@ -198,9 +201,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  // const newLongURL = req.body.newLongURL;
   const id = req.params.id;
-  // urlDatabase[id].longURL = newLongURL; 
   if (findUserByShortURL(id, user_id, urlDatabase)) {
     res.redirect("/urls/");
   } 
@@ -208,7 +209,7 @@ app.post("/urls/:id", (req, res) => {
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL;
-  const user_id = req.cookies["user_id"];
+  const user_id = req.session.user_id;
   if (findUserByShortURL(shortURL, user_id, urlDatabase)) {
     delete urlDatabase[shortURL];
     res.redirect("/urls/");
@@ -221,7 +222,7 @@ app.post("/login", (req, res) => {
   const {email, password} = req.body 
   let user = authenticateUser(email, password, users);
   if (user.email) {
-    res.cookie("user_id", user.id);
+    req.session.user_id = user.id;
     res.redirect("/urls");
   } else {
     res.status(403).send("Invalid credentials!");
@@ -245,19 +246,15 @@ app.post("/register", (req, res) => {
     password: hashedPassword,
   }
   // console.log(users);
-  res.cookie("user_id", newUserID);
+  req.session.user_id = newUserID;
   res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  req.session = null;
   res.redirect("/urls");
 });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-
-
-
