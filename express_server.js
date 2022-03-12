@@ -1,3 +1,5 @@
+const { generateRandomString, authenticateUser, urlsForUser, findUserByShortURL } = require('./helpers.js');
+
 const express = require("express");
 const cookieSession = require('cookie-session');
 const app = express();
@@ -36,65 +38,65 @@ const users = {
   }
 };
 
-function generateRandomString() { 
-  let result = Array.from(Array(6), () => Math.floor(Math.random() * 36).toString(36)).join("");
-  return result;
-};
+// function generateRandomString() { 
+//   let result = Array.from(Array(6), () => Math.floor(Math.random() * 36).toString(36)).join("");
+//   return result;
+// };
 
-const findUserByEmail = function(email, users) {  // helper function used in authenticateUser function
-  for (const userID in users) {
-    if (users[userID].email === email) {
-      return true;
-    }
-  }
-  return false;
-};
+// const findUserByEmail = function(email, users) {  // helper function used in authenticateUser function
+//   for (const userID in users) {
+//     if (users[userID].email === email) {
+//       return true;
+//     }
+//   }
+//   return false;
+// };
 
-const findUserByPassword = function(password, users) {  // helper function used in authenticateUser function
-  for (const userID in users) {
-    if (bcrypt.compareSync(password, users[userID].password)) {
-      return true;
-    }
-  }
-  return false;
-};
+// const findUserByPassword = function(password, users) {  // helper function used in authenticateUser function
+//   for (const userID in users) {
+//     if (bcrypt.compareSync(password, users[userID].password)) {
+//       return true;
+//     }
+//   }
+//   return false;
+// };
 
-const authenticateUser = function(email, password, users) {  // helper function used in POST /login
-  for (const user in users) {
-    if (users[user].email === email && bcrypt.compareSync(password, users[user].password)) {
-      return users[user]; // this is for the login 
-    }
-  }
-  const userFound = findUserByEmail(email, users);
-  const passwordFound = findUserByPassword(password, users);
-  if (!userFound && !passwordFound) {
-    return false;
-  }
-  if (userFound || passwordFound) {
-    return true;
-  }
-  return true;
-};
+// const authenticateUser = function(email, password, users) {  // helper function used in POST /login
+//   for (const user in users) {
+//     if (users[user].email === email && bcrypt.compareSync(password, users[user].password)) {
+//       return users[user]; // this is for the login 
+//     }
+//   }
+//   const userFound = findUserByEmail(email, users);
+//   const passwordFound = findUserByPassword(password, users);
+//   if (!userFound && !passwordFound) {
+//     return false;
+//   }
+//   if (userFound || passwordFound) {
+//     return true;
+//   }
+//   return true;
+// };
 
-const urlsForUser = function(id, uDb) { 
-  newObj = {};
-  for (const k in uDb) { 
-    if (id === uDb[k].userID) { 
-      newObj[k] = {             
-        longURL: uDb[k].longURL,
-        userID: uDb[k].userID
-      };
-    }
-  } 
-  return newObj;
-};
+// const urlsForUser = function(id, uDb) { 
+//   newObj = {};
+//   for (const k in uDb) { 
+//     if (id === uDb[k].userID) { 
+//       newObj[k] = {             
+//         longURL: uDb[k].longURL,
+//         userID: uDb[k].userID
+//       };
+//     }
+//   } 
+//   return newObj;
+// };
 
-const findUserByShortURL = function(shortURL, id, uDb) { 
-  if (uDb[shortURL].userID === id) {
-    return true;
-  }
-  return false;       
-};
+// const findUserByShortURL = function(shortURL, id, uDb) { 
+//   if (uDb[shortURL].userID === id) {
+//     return true;
+//   }
+//   return false;       
+// };
 
 // GET requests 
 
