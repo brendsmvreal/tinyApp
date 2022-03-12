@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 
-const generateRandomString = function() { 
+const generateRandomString = function() {
   let result = Array.from(Array(6), () => Math.floor(Math.random() * 36).toString(36)).join("");
   return result;
 };
@@ -11,7 +11,6 @@ const findUserByEmail = function(email, users) {  // helper function used in aut
       return true;
     }
   }
-  return false;
 };
 
 const findUserByPassword = function(password, users) {  // helper function used in authenticateUser function
@@ -26,7 +25,7 @@ const findUserByPassword = function(password, users) {  // helper function used 
 const authenticateUser = function(email, password, users) {  // helper function used in POST /login
   for (const user in users) {
     if (users[user].email === email && bcrypt.compareSync(password, users[user].password)) {
-      return users[user]; // this is for the login 
+      return users[user]; 
     }
   }
   const userFound = findUserByEmail(email, users);
@@ -40,24 +39,24 @@ const authenticateUser = function(email, password, users) {  // helper function 
   return true;
 };
 
-const urlsForUser = function(id, uDb) { 
+const urlsForUser = function(id, uDb) { // helper function that gives access to the user of their created URL's 
   newObj = {};
-  for (const k in uDb) { 
-    if (id === uDb[k].userID) { 
-      newObj[k] = {             
+  for (const k in uDb) {
+    if (id === uDb[k].userID) {
+      newObj[k] = {
         longURL: uDb[k].longURL,
         userID: uDb[k].userID
       };
     }
-  } 
+  }
   return newObj;
 };
 
-const findUserByShortURL = function(shortURL, id, uDb) { 
+const findUserByShortURL = function(shortURL, id, uDb) {
   if (uDb[shortURL].userID === id) {
     return true;
   }
-  return false;       
+  return false;
 };
 
-module.exports = { generateRandomString, authenticateUser, urlsForUser, findUserByShortURL };
+module.exports = { generateRandomString, authenticateUser, urlsForUser, findUserByShortURL, findUserByEmail };
