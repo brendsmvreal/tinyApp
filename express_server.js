@@ -39,6 +39,16 @@ const users = {
 };
 
 // GET requests
+
+app.get("/", (req, res) => {
+  const user_id = req.session.user_id;
+  const user = users[user_id];
+  const templateVars = {
+    userKey: user,
+  };
+  res.render("urls_login", templateVars);
+});
+
 app.get("/urls", (req, res) => {
   const user_id = req.session.user_id;
   const user = users[user_id];
